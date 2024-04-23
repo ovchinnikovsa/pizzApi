@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 
 services:
   web:
@@ -10,6 +10,8 @@ services:
       - 8080:80
     depends_on:
       - app
+    networks:
+      - internal
 
   app:
     build:
@@ -18,10 +20,16 @@ services:
     volumes:
       - ./src:/var/www/html
       - .env:/var/www/html/.env
-      - ./docker/php/composer-dev.json:/var/www/html/composer.json
-      - ./docker/php/composer-dev.lock:/var/www/html/composer.lock
+      - ./docker/php/composer.json:/var/www/html/composer.json
+      - ./docker/php/composer.lock:/var/www/html/composer.lock
+      - ./docker/php/docker-php-ext-xdebug.ini:/usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
     expose:
       - 9000
+    networks:
+      - internal
+    environment:
+      XDEBUG_MODE: debug
+      XDEBUG_CONFIG: client_host=host.docker.internal client_port=9003
     depends_on:
       - mariadb
 
@@ -34,3 +42,9 @@ services:
       - ./docker/mariadb/dump:/var/backups:rw
     env_file:
       - .env
+    networks:
+      - internal
+
+networks:
+  internal:
+    driver: bridge

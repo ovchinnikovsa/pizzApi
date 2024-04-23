@@ -11,4 +11,5 @@ use App\Controller\StaticController;
 
 $router = new Router();
 
-$router->addRoute('/', [StaticController::class, 'index']);
+$router->get('/', [StaticController::class, 'index']);
+$router->get('orders/{id}', [StaticController::class, 'index']);

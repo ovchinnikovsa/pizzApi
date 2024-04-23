@@ -1,16 +1,16 @@
 include .env
 
 run:
-	docker-compose up -d
+	docker-compose -f docker-compose-dev.yml up -d
 
 up:
-	docker-compose up
+	docker-compose -f docker-compose-dev.yml up
 
 stop:
-	docker-compose down
+	docker-compose -f docker-compose-dev.yml down
 
 build:
-	docker-compose build
+	docker-compose -f docker-compose-dev.yml build
 
 clean:
 	docker system prune -a --volumes
@@ -31,3 +31,15 @@ db_dump:
 db_restore:
 	docker-compose exec -i mariadb sh -c "exec mysql --user=root \
 	--password=$(MARIADB_ROOT_PASSWORD) $(MARIADB_DATABASE) < /var/backups/db.sql"
+
+prod_run:
+	docker-compose -f docker-compose.yml up -d
+
+prod_up:
+	docker-compose -f docker-compose.yml up
+
+prod_stop:
+	docker-compose -f docker-compose.yml down
+
+prod_build:
+	docker-compose -f docker-compose.yml build

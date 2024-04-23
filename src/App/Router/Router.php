@@ -3,29 +3,48 @@
 namespace App\Router;
 
 use App\Controller\StaticController;
+use App\Router\Request;
 
 class Router
 {
     private $routes = [];
+    private Request $request;
+
+    public function __construct()
+    {
+        $this->request = new Request();
+    }
 
     public function __destruct()
     {
-        $query = self::getParsedQuery();
-        $this->handleRequest($query['method'], $query['params']);
+        $this->handleRequest();
     }
 
-    public function addRoute($uri, $handler)
+    public function get($uri, $handler)
     {
-        $this->routes[$uri] = $handler;
+        $this->addRoute('GET', $uri, $handler);
     }
 
-    private function handleRequest($method, $params)
+    public function post($uri, $handler)
     {
+        $this->addRoute('POST', $uri, $handler);
+    }
 
-        $handler = $this->routes[$method] ?? null;
+    private function addRoute(string $method, string $uri, array $handler)
+    {
+        $this->routes[] = [
+            'method' => $method,
+            'uri' => $uri,
+            'handler' => $handler
+        ];
+    }
+
+    private function handleRequest()
+    {
+        $handler = $this->resolveHandler();
         if ($handler) {
             try {
-                call_user_func_array($handler, [$params]);
+                call_user_func_array($handler, []);
             } catch (\Exception $e) {
                 StaticController::error([
                     'message' => $e->getMessage()
@@ -38,25 +57,16 @@ class Router
         }
     }
 
-    private static function getCurrentUrl(): string
+    public function resolveHandler(): string
     {
-        $url = empty($_SERVER['HTTPS']) ? 'http' : 'https';
-        $url .= "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
-        return $url;
-    }
+        $uri = $this->request->getQuery();
+        $current_route = array_filter($this->routes, function ($route) use ($uri) {
+            $routePattern = $route['uri'];
+            $routePattern = preg_replace('{\w+}', '(\w+)', $route['uri']);
+            $routePattern = str_replace('/', '\/', $route['uri']);
+            return preg_match($routePattern, $uri);
+        });
 
-    private static function getParsedQuery(): array
-    {
-        $url = parse_url(self::getCurrentUrl());
-
-        $params = $url['path'] ?? '';
-        $method = explode('/', $params);
-        $method = $method[0] ?: $method[1];
-        $method = $method === '' ? '/' : $method;
-
-        return [
-            'method' => $method,
-            'params' => $params,
-        ];
+        return count($current_route) ? $current_route[0]['handler'] : null;
     }
 }
