@@ -2,8 +2,11 @@
 
 namespace App\Router;
 
+use App\Controller\ApiController;
 use App\Controller\StaticController;
+use App\Exception\UserException;
 use App\Router\Request;
+use App\Validator\ValidatorFactory;
 
 class Router
 {
@@ -35,19 +38,27 @@ class Router
         $this->routes[] = [
             'method' => $method,
             'uri' => $uri,
-            'handler' => $handler
+            'handler' => $handler,
         ];
     }
 
     private function handleRequest()
     {
-        $handler = $this->resolveHandler();
-        if ($handler) {
+        $route = $this->resolveHandler();
+        if ($route && is_callable($route['handler'] ?? null)) {
             try {
-                call_user_func_array($handler, []);
-            } catch (\Exception $e) {
-                StaticController::error([
+                $this->callToHandlers($route);
+            } catch (UserException $e) {
+                ApiController::sendError([
                     'message' => $e->getMessage()
+                ]);
+            } catch (\PDOException $e) {
+                ApiController::sendError([
+                    'message' => 'Database error'
+                ]);
+            } catch (\Exception $e) {
+                ApiController::sendError([
+                    'message' => 'Error'
                 ]);
             }
         } else {
@@ -57,16 +68,50 @@ class Router
         }
     }
 
-    public function resolveHandler(): string
+    private function callToHandlers(array $route): void
+    {
+        $controllerClass = $route['handler'][0] ?? null;
+        $controllerMethod = $route['handler'][1] ?? null;
+        $validator = ValidatorFactory::createValidator(
+            $controllerClass,
+            $this->request
+        );
+        $validator->validateRequest($route['method']);
+        $validator->validate($controllerMethod);
+
+        call_user_func_array($route['handler'], [1]);
+    }
+
+    private function resolveHandler(): array|null
     {
         $uri = $this->request->getQuery();
-        $current_route = array_filter($this->routes, function ($route) use ($uri) {
-            $routePattern = $route['uri'];
-            $routePattern = preg_replace('{\w+}', '(\w+)', $route['uri']);
-            $routePattern = str_replace('/', '\/', $route['uri']);
-            return preg_match($routePattern, $uri);
-        });
+        foreach ($this->routes as $route) {
+            if (!$this->resolveMethod($route['method']))
+                continue;
 
-        return count($current_route) ? $current_route[0]['handler'] : null;
+            if (!$this->resolveUrl($uri, $route['uri']))
+                continue;
+
+            return $route;
+        }
+
+        return null;
+    }
+
+    private function resolveUrl(string $uri, string $routeUri): bool
+    {
+        $routePattern = $routeUri;
+        $routePattern = preg_replace('/{\w+}/', '(.*?)', $routePattern);
+        $routePattern = str_replace('/', '\/', $routePattern);
+        $routePattern = '/^' . $routePattern . '$/';
+
+        $condition = preg_match($routePattern, $uri, $params);
+
+        return $condition === 1;
+    }
+
+    private function resolveMethod(string $method): bool
+    {
+        return $this->request->getMethod() === $method;
     }
 }

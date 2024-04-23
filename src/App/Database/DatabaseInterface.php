@@ -13,8 +13,6 @@ abstract class DatabaseInterface
     protected $user;
     protected $password;
 
-    // TODO: add table param to all methods
-
     public function __construct(PDO $db)
     {
         $this->db = $db;
