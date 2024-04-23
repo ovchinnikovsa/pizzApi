@@ -1,0 +1,48 @@
+version: '3'
+
+services:
+  web:
+    image: nginx:stable-alpine3.17-slim
+    volumes:
+      - ./src:/var/www/html
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d
+    ports:
+      - 8080:80
+    depends_on:
+      - app
+    networks:
+      - internal
+
+  app:
+    build:
+      context: .
+      dockerfile: ./docker/php/Dockerfile
+    volumes:
+      - ./src:/var/www/html
+      - .env:/var/www/html/.env
+      - ./docker/php/composer.json:/var/www/html/composer.json
+      - ./docker/php/composer.lock:/var/www/html/composer.lock
+      - ./docker/php/docker-php-ext-xdebug.ini:/usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+    expose:
+      - 9000
+    networks:
+      - internal
+    environment:
+      XDEBUG_MODE: debug
+      XDEBUG_CONFIG: client_host=host.docker.internal client_port=9003
+
+  mariadb:
+    image: mariadb:10.9
+    ports:
+      - 3306:3306
+    volumes:
+      - ./docker/mariadb/database:/var/lib/mysql
+      - ./docker/mariadb/dump:/var/backups:rw
+    env_file:
+      - .env
+    networks:
+      - internal
+
+networks:
+  internal:
+    driver: bridge
