@@ -3,32 +3,40 @@
 namespace App\Controller;
 
 use App\Controller\ApiController;
-use App\Interface\Order as OrderInterface;
+use App\Interface\OrderController;
+use App\Database\DTO\OrdersDto;
+use App\Database\Models\Order as OrderModel;
 
-class Order extends ApiController implements OrderInterface
+class Order extends ApiController implements OrderController
 {
-    public static function newOrder(): void
+    public static function newOrder(OrdersDto $dto): void
     {
-        return self::send(['new order']);
+        OrderModel::insert(
+            $dto->uuid,
+            $dto->getItemsAsString()
+        );
     }
 
-    public static function addToOrder(int $id): void
+    public static function addToOrder(OrdersDto $dto): void
     {
-        return self::send(['add to order' => $id]);
+        OrderModel::updateItems(
+            $dto->uuid,
+            $dto->getItemsAsString()
+        );
     }
 
-    public static function getOrder(int $id): void
+    public static function getOrder(OrdersDto $dto): void
     {
-        return self::send(['add to order' => $id]);
+        OrderModel::getByUuid($dto->uuid);
     }
 
-    public static function setOrderDone(int $id): void
+    public static function setOrderDone(OrdersDto $dto): void
     {
-        return self::send(['set order done']);
+        OrderModel::insert($dto->uuid, $dto->done);
     }
 
-    public static function getAllOrder(int|null $done = null): void
+    public static function getAllOrder(OrdersDto $dto): void
     {
-        return self::send(['get all order']);
+        OrderModel::getList($dto->done);
     }
 }

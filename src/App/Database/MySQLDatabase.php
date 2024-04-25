@@ -2,11 +2,11 @@
 
 namespace App\Database;
 
+use App\Interface\Database;
 use \PDO;
 use \PDOException;
-use \App\Database\DatabaseInterface;
 
-class MySQLDatabase extends DatabaseInterface
+class MySQLDatabase extends Database
 {
     public function __construct()
     {

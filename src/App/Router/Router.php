@@ -76,10 +76,9 @@ class Router
             $controllerClass,
             $this->request
         );
-        $validator->validateRequest($route['method']);
-        $validator->validate($controllerMethod);
+        $dto = $validator->validateMethod($controllerMethod);
 
-        call_user_func_array($route['handler'], [1]);
+        call_user_func_array($route['handler'], [$dto]);
     }
 
     private function resolveHandler(): array|null
@@ -106,6 +105,8 @@ class Router
         $routePattern = '/^' . $routePattern . '$/';
 
         $condition = preg_match($routePattern, $uri, $params);
+
+        $this->request->setQueryParam(array_shift($params)[0] ?? '');
 
         return $condition === 1;
     }

@@ -18,6 +18,9 @@ class Request
         $this->method = $_SERVER['REQUEST_METHOD'];
         $this->query = $_SERVER['QUERY_STRING'];
         $this->postData = $_POST;
+        if ($this->method === 'POST' && empty($_POST)) {
+            $this->postData = json_decode($this->getInput(), true) ?? [];
+        }
         $this->getData = $_GET;
     }
 
@@ -46,13 +49,18 @@ class Request
         return $this->queryParam;
     }
 
-    public function getGetData(): array
+    public function getGetData(string $key): mixed
     {
-        return $this->getData;
+        return $this->getData[$key] ?? null;
     }
 
-    public function getPostData(): array
+    public function getPostData(string $key): mixed
     {
-        return $this->postData;
+        return $this->postData[$key] ?? null;
+    }
+
+    public function getInput(): string
+    {
+        return file_get_contents('php://input');
     }
 }

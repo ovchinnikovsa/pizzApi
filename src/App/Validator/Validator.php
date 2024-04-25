@@ -7,37 +7,13 @@ use App\Router\Request;
 abstract class Validator
 {
     protected Request $request;
-    protected string $method;
 
-    public function __construct(Request $request, string $method)
+    public function __construct(Request $request)
     {
         $this->request = $request;
-        $this->method = $method;
     }
 
-    public function validateRequest(array $params): bool
-    {
-        if ($this->request->getMethod() !== $this->method) {
-            return false;
-        }
-
-        return $this->validateRequestParam($params);
-    }
-
-    protected function validateRequestParam(array $params): bool
-    {
-        $data = $this->method === 'POST'
-            ? $this->request->getPostData()
-            : $this->request->getGetData();
-
-        foreach ($params as $param) {
-            if (!isset($data[$param]) || empty($data[$param])) {
-                return false;
-            }
-        }
-
-        return true;
-    }
+    abstract public function validateMethod(string $method);
 
     protected static function isJsonValid(string $json): bool
     {

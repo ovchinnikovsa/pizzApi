@@ -3,3 +3,4 @@
 /src/composer.*
 /src/.env
 /docker/mariadb/database
+/docker/mariadb/dump

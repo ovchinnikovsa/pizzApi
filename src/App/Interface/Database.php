@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Database;
+namespace App\Interface;
 
 use \PDO;
 use Dotenv\Dotenv;
 
-abstract class DatabaseInterface
+abstract class Database
 {
     protected $db;
     protected $host;

@@ -2,16 +2,17 @@
 
 namespace App\Interface;
 
+use App\Database\DTO\OrdersDto;
 
 interface Order
 {
-    public static function newOrder(): void;
+    public function newOrder(): OrdersDto;
 
-    public static function addToOrder(int $id): void;
+    public function addToOrder(): OrdersDto;
 
-    public static function getOrder(int $id): void;
+    public function getOrder(): OrdersDto;
 
-    public static function setOrderDone(int $id): void;
+    public function setOrderDone(): OrdersDto;
 
-    public static function getAllOrder(int|null $done = null): void;
+    public function getAllOrder(): OrdersDto;
 }
