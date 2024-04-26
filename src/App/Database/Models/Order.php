@@ -3,6 +3,8 @@
 namespace App\Database\Models;
 
 use App\Database\DB;
+use App\Database\DTO\OrdersDto;
+use App\Exception\UserException;
 
 class Order
 {
@@ -21,33 +23,43 @@ class Order
         return DB::update(
             self::TABLE,
             ['items' => $items],
-            'uuid = ' . $uuid,
+            " uuid = \"$uuid\" ",
         );
     }
 
-    public static function updateDone(string $uuid, bool $done): bool
+    public static function updateDone(string $uuid, int $done): bool
     {
         return DB::update(
             self::TABLE,
             ['done' => $done],
-            'uuid = ' . $uuid,
+            " uuid = \"$uuid\" ",
         );
     }
 
 
-    public static function getByUuid(string $uuid): array
+    public static function getByUuid(string $uuid): OrdersDto
     {
-        return DB::fetchOne(
+        $order = DB::fetchAll(
             self::TABLE,
-            ['uuid' => $uuid]
+            " `uuid` = \"$uuid\" ",
+        );
+
+        $order = reset($order);
+        if (empty($order))
+            throw new UserException('Order not found');
+
+        return new OrdersDto(
+            $order['uuid'],
+            OrdersDto::setItemsFromString($order['items']),
+            $order['done'],
         );
     }
 
     public static function getList(bool|null $done = null): array
     {
-        $where = [];
+        $where = ' 1 = 1';
         if ($done !== null) {
-            $where = ['done' => $done];
+            $where = " done = \"$done\" ";
         }
         return DB::fetchAll(
             self::TABLE,

@@ -46,22 +46,22 @@ class DB
         return $stmt;
     }
 
-    public static function fetchAll(string $query, array $params = [])
+    public static function fetchAll(string $query, string $where = '', array $params = [])
     {
         $instance = self::getInstance();
         try {
-            $stmt = $instance->fetchAll($query, $params);
+            $stmt = $instance->fetchAll($query, $where);
         } catch (\PDOException $e) {
             throw new \PDOException('Database query execution error', 0, $e);
         }
         return $stmt;
     }
 
-    public static function fetchOne(string $query, array $params = [])
+    public static function fetchOne(string $query, string $where = '', array $params = [])
     {
         $instance = self::getInstance();
         try {
-            $stmt = $instance->fetchOne($query, $params);
+            $stmt = $instance->fetchOne($query, $where);
         } catch (\PDOException $e) {
             throw new \PDOException('Database query execution error', 0, $e);
         }

@@ -16,12 +16,20 @@ class Request
         $this->url = empty($_SERVER['HTTPS']) ? 'http' : 'https';
         $this->url .= "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
         $this->method = $_SERVER['REQUEST_METHOD'];
-        $this->query = $_SERVER['QUERY_STRING'];
+
         $this->postData = $_POST;
         if ($this->method === 'POST' && empty($_POST)) {
             $this->postData = json_decode($this->getInput(), true) ?? [];
         }
+
         $this->getData = $_GET;
+        foreach ($_GET as $key => $value) {
+            if ($value === '') {
+                $_SERVER['QUERY_STRING'] = $key;
+                unset($_GET[$key]);
+            }
+        }
+        $this->query = $_SERVER['QUERY_STRING'];
     }
 
     public function getUrl(): string

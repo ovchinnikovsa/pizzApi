@@ -102,11 +102,13 @@ class Router
         $routePattern = $routeUri;
         $routePattern = preg_replace('/{\w+}/', '(.*?)', $routePattern);
         $routePattern = str_replace('/', '\/', $routePattern);
-        $routePattern = '/^' . $routePattern . '$/';
+        $routePattern = '/^' . $routePattern . '\/*$/';
 
         $condition = preg_match($routePattern, $uri, $params);
 
-        $this->request->setQueryParam(array_shift($params)[0] ?? '');
+        $variables = array_slice($params, 1);
+        if (!empty($variables))
+            $this->request->setQueryParam($variables[0]);
 
         return $condition === 1;
     }

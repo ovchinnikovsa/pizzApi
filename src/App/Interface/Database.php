@@ -26,14 +26,16 @@ abstract class Database
 
     abstract protected function query(string $query, array $params = []);
 
-    public function fetchAll(string $query, array $params = []): array
+    public function fetchAll(string $table, string $where, array $params = []): array
     {
+        $query = "SELECT * FROM $table WHERE $where";
         $stmt = $this->query($query, $params);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function fetchOne(string $query, array $params = []): mixed
+    public function fetchOne(string $table, string $where, array $params = []): mixed
     {
+        $query = "SELECT * FROM $table WHERE $where";
         $stmt = $this->query($query, $params);
         $r = $stmt->fetch(PDO::FETCH_ASSOC) ?: [false];
         return reset($r);
